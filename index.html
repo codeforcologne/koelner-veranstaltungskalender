@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+	<head>
+	  <meta charset="utf-8">
+	  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	  <link rel='stylesheet' href='fullcalendar-2.3.1/fullcalendar.min.css' />
+	  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4/leaflet.css" />
+	  <link href='http://fonts.googleapis.com/css?family=Roboto+Condensed' rel='stylesheet' type='text/css'>
+	  <title>Kölner Veranstaltungskalender</title>
+	  <style type="text/css">
+	  	.leaflet-popup-content {
+	  		font-family: 'Roboto Condensed', sans-serif;	  		
+	  	}
+	  	body {
+	  		overflow:hidden;
+	  		font-family: 'Roboto Condensed', sans-serif;
+	  	}
+	  	#map {
+	  		height: 99%; 
+	  		width: 100%;
+	  		position: absolute;
+	  	}
+	  	#calendar {
+	  		z-index:100;
+	  		position: absolute;
+	  		top:0px;
+	  		background-color:#ffffff;
+	  	}
+	  </style>
+	  <script src="http://code.jquery.com/jquery-1.8.0.min.js"></script>
+	  <script src="http://cdn.leafletjs.com/leaflet-0.4/leaflet.js"></script>
+	   <script src="fullcalendar-2.3.1/lib//moment.min.js"></script>
+	  <script src="fullcalendar-2.3.1/fullcalendar.min.js"></script>
+	  <script src='fullcalendar-2.3.1/lang/de.js'></script>   
+	   <script type="text/javascript">
+
+
+		var map, markers;
+
+      
+      var myIcon = L.icon({
+	    iconUrl: 'marker.png',
+	    iconSize: [20, 20],
+	    iconAnchor: [10, 10],
+	    popupAnchor: [0, 0]	   
+	});
+     
+
+      //function to set popup for feature
+      function onEachFeature(feature, layer) {
+        var popupContent = "", prop;
+        if (feature.properties) {
+          for(prop in feature.properties){
+            popupContent += "<p>" + prop + ": " + feature.properties[prop] + "</p>";
+          }
+        }
+        layer.bindPopup(popupContent);
+      }
+
+      function renderMarkers(events){
+      	$(markers).each(function(){
+      		map.removeLayer(this);
+      	});
+      	markers = new Array();
+      	$(events).each(function(){
+      		if(this.latitude && this.longitude){
+	      		var marker = L.marker([this.latitude, this.longitude], {icon: myIcon}).addTo(map);
+	      		popUpString = '<a href="' + this.link + '" target="_blank"> ' 
+				    		+ this.title + "</a><br/>" + this.description + "<br/>";
+				if (this.uhrzeit){
+					popUpString += '<b>Uhrzeit:</b> ' + this.uhrzeit + '<br/>';
+				}
+				if (this.veranstaltungsort){
+					popUpString += '<b>Ort:</b> ' + this.veranstaltungsort + '<br/>';
+				}
+				if (this.teaserbild){
+					popUpString += '<img width="200px" src="http://www.stadt-koeln.de/' + this.teaserbild + '" />';
+				}
+	      		marker.bindPopup(popUpString);
+	      		markers.push(marker);
+	      		this.marker = marker;
+      		}
+      	});
+      	
+      }
+
+	   $(document).ready(function() {
+
+	   		// Calendar
+		    $('#calendar').fullCalendar({
+		    	// Monday as the first day
+		    	firstDay: 1,
+		    	defaultView: 'basicWeek',
+		    	aspectRatio: 7,
+		    	eventLimit: true,
+		    	eventColor: '#ff0090',
+			    events: function(start, end, timezone, callback) {
+			        $.ajax({
+			            url: 'data.json',
+			            dataType: 'json',			           
+			            success: function(doc) {
+			                var events = [];			               
+			                $(doc.items).each(function() {
+			                	if (moment(this.endedatum).isAfter(start)
+			                		&& moment(this.beginndatum).isBefore(end)){
+				                    this.start = this.beginndatum;
+				                    this.end = this.endedatum;
+				                    events.push(this);
+			                	}
+			                });
+			                renderMarkers(events);
+			                callback(events);
+			            }
+			        });
+			    },
+			    eventClick: function(event, jsEvent, view) {
+			    	event.marker.openPopup();			    			    			        
+			    }
+			});
+
+			// Map
+			var latitude = 50.941357, longitude = 6.958307, zoom_level = 13;
+	        map = L.map("map", {zoomControl: false}).setView([latitude, longitude], zoom_level);
+	        L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
+	          attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &mdash; Event Data by <a href="http://offenedaten-koeln.de/group/stadt-k%C3%B6ln">Stadt Köln</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>',
+	          subdomains: 'abcd',
+	          minZoom: 0,
+	          maxZoom: 20,
+	          ext: 'png'
+	        }).addTo(map);
+	         // Add our zoom control manually where we want to
+              var zoomControl = L.control.zoom({
+                  position: 'bottomleft'
+              });
+              map.addControl(zoomControl);
+		});
+	   </script>
+	</head>
+	<body>					
+		<div id='map'></div>
+		
+		<div id='calendar'></div>
+			
+	</body>
+</html>
