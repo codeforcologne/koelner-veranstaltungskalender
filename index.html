@@ -57,7 +57,15 @@
       		if(this.latitude && this.longitude){
 	      		var marker = L.marker([this.latitude, this.longitude], {icon: myIcon}).addTo(map);
 	      		popUpString = '<a href="' + this.link + '" target="_blank"> ' 
-				    		+ this.title + "</a><br/>" + this.description + "<br/>";
+				    		+ this.title + "</a><br/>" ;
+				if (this.beginndatum == this.endedatum){
+					popUpString += moment(this.beginndatum).format("Do MMMM YYYY") + '</br>';
+				}
+				else {
+					popUpString += moment(this.beginndatum).format("Do MMMM");
+					popUpString += moment(this.endedatum).format(" - Do MMMM YYYY") + '</br>';
+				}
+				popUpString += "<i>" + this.description + "</i><br/>";
 				if (this.uhrzeit){
 					popUpString += '<b>Uhrzeit:</b> ' + this.uhrzeit + '<br/>';
 				}
