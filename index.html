@@ -11,6 +11,9 @@
 	  	.leaflet-popup-content {
 	  		font-family: 'Roboto Condensed', sans-serif;	  		
 	  	}
+	  	.fc-content {
+	  		cursor: pointer;
+	  	}
 	  	body {
 	  		overflow:hidden;
 	  		font-family: 'Roboto Condensed', sans-serif;
@@ -44,18 +47,6 @@
 	    iconAnchor: [10, 10],
 	    popupAnchor: [0, 0]	   
 	});
-     
-
-      //function to set popup for feature
-      function onEachFeature(feature, layer) {
-        var popupContent = "", prop;
-        if (feature.properties) {
-          for(prop in feature.properties){
-            popupContent += "<p>" + prop + ": " + feature.properties[prop] + "</p>";
-          }
-        }
-        layer.bindPopup(popupContent);
-      }
 
       function renderMarkers(events){
       	$(markers).each(function(){
@@ -96,8 +87,8 @@
 		    	eventColor: '#ff0090',
 			    events: function(start, end, timezone, callback) {
 			        $.ajax({
-			            url: 'data.json',
-			            dataType: 'json',			           
+			            url: 'http://json2jsonp.com/?url=http://www.stadt-koeln.de/externe-dienste/open-data/events-od.php',
+			            dataType: 'jsonp',			           
 			            success: function(doc) {
 			                var events = [];			               
 			                $(doc.items).each(function() {
