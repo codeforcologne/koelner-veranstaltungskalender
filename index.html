@@ -34,11 +34,14 @@
 	  <script src="http://cdn.leafletjs.com/leaflet-0.4/leaflet.js"></script>
 	   <script src="fullcalendar-2.3.1/lib//moment.min.js"></script>
 	  <script src="fullcalendar-2.3.1/fullcalendar.min.js"></script>
-	  <script src='fullcalendar-2.3.1/lang/de.js'></script>   
+	  <script src='fullcalendar-2.3.1/lang/de.js'></script>  
+	  <script src='Leaflet.markercluster-0.2/dist/leaflet.markercluster.js'></script>
+		<link href='Leaflet.markercluster-0.2/dist/MarkerCluster.css' rel='stylesheet' />
+		<link href='Leaflet.markercluster-0.2/dist/MarkerCluster.Default.css' rel='stylesheet' /> 
 	   <script type="text/javascript">
 
 
-		var map, markers;
+		var map, markercluster;
 
       
       var myIcon = L.icon({
@@ -48,14 +51,14 @@
 	    popupAnchor: [0, 0]	   
 	});
 
-      function renderMarkers(events){
-      	$(markers).each(function(){
-      		map.removeLayer(this);
-      	});
-      	markers = new Array();
+      function renderMarkers(events){ 
+     	 if (markercluster != null){   
+      		map.removeLayer(markercluster); 
+      	 } 	
+      	markercluster = new L.MarkerClusterGroup();
       	$(events).each(function(){
       		if(this.latitude && this.longitude){
-	      		var marker = L.marker([this.latitude, this.longitude], {icon: myIcon}).addTo(map);
+	      		var marker = new L.marker([this.latitude, this.longitude], {icon: myIcon});
 	      		popUpString = '<a href="' + this.link + '" target="_blank"> ' 
 				    		+ this.title + "</a><br/>" ;
 				if (this.beginndatum == this.endedatum){
@@ -75,12 +78,13 @@
 				if (this.teaserbild){
 					popUpString += '<img width="200px" src="http://www.stadt-koeln.de/' + this.teaserbild + '" />';
 				}
-	      		marker.bindPopup(popUpString);
-	      		markers.push(marker);
-	      		this.marker = marker;
+	      		
+				marker.bindPopup(popUpString);   		
+	      		markercluster.addLayer(marker);
+	      		this.marker = marker;      		
       		}
       	});
-      	
+		map.addLayer(markercluster);      	
       }
 
 	   $(document).ready(function() {
@@ -112,8 +116,10 @@
 			            }
 			        });
 			    },
-			    eventClick: function(event, jsEvent, view) {
-			    	event.marker.openPopup();			    			    			        
+			    eventClick: function(event, jsEvent, view) {			    	
+			    	markercluster.zoomToShowLayer(event.marker, function() {				       
+						event.marker.openPopup();
+				    });				    		    			    			        
 			    }
 			});
 
