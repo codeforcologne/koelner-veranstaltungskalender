@@ -18,14 +18,15 @@
 	  		overflow:hidden;
 	  		font-family: 'Roboto Condensed', sans-serif;
 	  	}
-	  	#map {
-	  		height: 99%; 
+	  	#wrapper {
+	  		height: 100%;
 	  		width: 100%;
-	  		position: absolute;
+	  	}
+	  	#map {	  		
+	  		width: 100%;	  		
 	  	}
 	  	#calendar {
-	  		z-index:100;
-	  		position: absolute;
+	  		width:100%;	  		
 	  		top:0px;
 	  		background-color:#ffffff;
 	  	}
@@ -92,14 +93,27 @@
 		map.addLayer(markercluster);      	
       }
 
+      function setHeightOfDivs(){
+
+      	// Set height of divs dynamically (one third calendar, two thirds map)
+
+      	var third = ($(window).height())/3;
+      	$('#calendar').fullCalendar('option', 'height', third);        
+        $('#map').height((third*2)-10);
+      }
+
+      $(window).resize(function() {
+		  setHeightOfDivs();
+		});
+
 	   $(document).ready(function() {
 
-	   		// Calendar
+	   		// Calendar	   		
 		    $('#calendar').fullCalendar({
 		    	// Monday as the first day
 		    	firstDay: 1,
 		    	defaultView: 'basicWeek',
-		    	aspectRatio: 7,
+		    	handleWindowResize: false,
 		    	eventLimit: true,
 		    	eventColor: '#ff0090',
 			    events: function(start, end, timezone, callback) {
@@ -127,7 +141,9 @@
 						event.marker.openPopup();
 				    });				    		    			    			        
 			    }
-			});
+			});			
+              
+            setHeightOfDivs();
 
 			// Map
 			var latitude = 50.941357, longitude = 6.958307, zoom_level = 13;
@@ -144,13 +160,15 @@
                   position: 'bottomleft'
               });
               map.addControl(zoomControl);
+
+              
 		});
 	   </script>
 	</head>
-	<body>					
-		<div id='map'></div>
-		
+	<body>
+	<div id='wrapper'>	
 		<div id='calendar'></div>
-			
+		<div id='map'></div>
+	<div>		
 	</body>
 </html>
