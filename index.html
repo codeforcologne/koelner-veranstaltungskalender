@@ -59,7 +59,7 @@
       	$(events).each(function(){
       		if(this.latitude && this.longitude){
 	      		var marker = new L.marker([this.latitude, this.longitude], {icon: myIcon});
-	      		popUpString = '<a href="' + this.link + '" target="_blank"> ' 
+	      		var popUpString = '<a href="' + this.link + '" target="_blank"> ' 
 				    		+ this.title + "</a><br/>" ;
 				if (this.beginndatum == this.endedatum){
 					popUpString += moment(this.beginndatum).format("Do MMMM YYYY") + '</br>';
@@ -79,7 +79,12 @@
 					popUpString += '<img width="200px" src="http://www.stadt-koeln.de/' + this.teaserbild + '" />';
 				}
 	      		
-				marker.bindPopup(popUpString);   		
+				marker.popUpString = popUpString;
+				 marker.on('click', function (e) {              
+				    this.bindPopup(this.popUpString); 
+				    this.openPopup();
+
+				});  		
 	      		markercluster.addLayer(marker);
 	      		this.marker = marker;      		
       		}
@@ -117,7 +122,8 @@
 			        });
 			    },
 			    eventClick: function(event, jsEvent, view) {			    	
-			    	markercluster.zoomToShowLayer(event.marker, function() {				       
+			    	markercluster.zoomToShowLayer(event.marker, function() {	
+			    		event.marker.bindPopup(event.marker.popUpString); 			       
 						event.marker.openPopup();
 				    });				    		    			    			        
 			    }
