@@ -1,15 +1,17 @@
 <!doctype html>
-<html>
+<html ng-app="eventsApp">
 	<head>
 	  <meta charset="utf-8">
 	  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 	  <link rel='stylesheet' href='fullcalendar-2.3.1/fullcalendar.min.css' />
 	  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4/leaflet.css" />
+		<link href='Leaflet.markercluster-0.2/dist/MarkerCluster.css' rel='stylesheet' />
+		<link href='Leaflet.markercluster-0.2/dist/MarkerCluster.Default.css' rel='stylesheet' />
 	  <link href='http://fonts.googleapis.com/css?family=Roboto+Condensed' rel='stylesheet' type='text/css'>
 	  <title>Kölner Veranstaltungskalender</title>
 	  <style type="text/css">
 	  	.leaflet-popup-content {
-	  		font-family: 'Roboto Condensed', sans-serif;	  		
+	  		font-family: 'Roboto Condensed', sans-serif;
 	  	}
 	  	.fc-content {
 	  		cursor: pointer;
@@ -22,45 +24,49 @@
 	  		height: 100%;
 	  		width: 100%;
 	  	}
-	  	#map {	  		
-	  		width: 100%;	  		
+	  	leaflet {
+	  		width: 100%;
 	  	}
 	  	#calendar {
-	  		width:100%;	  		
+	  		width:100%;
 	  		top:0px;
 	  		background-color:#ffffff;
 	  	}
 	  </style>
 	  <script src="http://code.jquery.com/jquery-1.8.0.min.js"></script>
 	  <script src="http://cdn.leafletjs.com/leaflet-0.4/leaflet.js"></script>
-	   <script src="fullcalendar-2.3.1/lib//moment.min.js"></script>
+	  <script src="fullcalendar-2.3.1/lib//moment.min.js"></script>
 	  <script src="fullcalendar-2.3.1/fullcalendar.min.js"></script>
-	  <script src='fullcalendar-2.3.1/lang/de.js'></script>  
+	  <script src='fullcalendar-2.3.1/lang/de.js'></script>
 	  <script src='Leaflet.markercluster-0.2/dist/leaflet.markercluster.js'></script>
-		<link href='Leaflet.markercluster-0.2/dist/MarkerCluster.css' rel='stylesheet' />
-		<link href='Leaflet.markercluster-0.2/dist/MarkerCluster.Default.css' rel='stylesheet' /> 
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js"></script>
+		<script src="http://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.13.0.js"></script>
+
+		<script src="ui-calender/calendar.js"></script>
+		<script src="angular-leaflet-directive.min.js"></script>
+		<script src="app.js"></script>
 	   <script type="text/javascript">
 
 
 		var map, markercluster;
 
-      
+
       var myIcon = L.icon({
 	    iconUrl: 'marker.png',
 	    iconSize: [20, 20],
 	    iconAnchor: [10, 10],
-	    popupAnchor: [0, 0]	   
+	    popupAnchor: [0, 0]
 	});
 
-      function renderMarkers(events){ 
-     	 if (markercluster != null){   
-      		map.removeLayer(markercluster); 
-      	 } 	
+      function renderMarkers(events){
+     	 if (markercluster != null){
+      		map.removeLayer(markercluster);
+      	 }
       	markercluster = new L.MarkerClusterGroup();
       	$(events).each(function(){
       		if(this.latitude && this.longitude){
 	      		var marker = new L.marker([this.latitude, this.longitude], {icon: myIcon});
-	      		var popUpString = '<a href="' + this.link + '" target="_blank"> ' 
+	      		var popUpString = '<a href="' + this.link + '" target="_blank"> '
 				    		+ this.title + "</a><br/>" ;
 				if (this.beginndatum == this.endedatum){
 					popUpString += moment(this.beginndatum).format("Do MMMM YYYY") + '</br>';
@@ -79,18 +85,20 @@
 				if (this.teaserbild){
 					popUpString += '<img width="200px" src="http://www.stadt-koeln.de/' + this.teaserbild + '" />';
 				}
-	      		
+
+				popUpString += "<span><input type='checkbox'> favorisieren</span>";
+
 				marker.popUpString = popUpString;
-				 marker.on('click', function (e) {              
-				    this.bindPopup(this.popUpString); 
+				 marker.on('click', function (e) {
+				    this.bindPopup(this.popUpString);
 				    this.openPopup();
 
-				});  		
+				});
 	      		markercluster.addLayer(marker);
-	      		this.marker = marker;      		
+	      		this.marker = marker;
       		}
       	});
-		map.addLayer(markercluster);      	
+		map.addLayer(markercluster);
       }
 
       function setHeightOfDivs(){
@@ -98,17 +106,17 @@
       	// Set height of divs dynamically (one third calendar, two thirds map)
 
       	var third = ($(window).height())/3;
-      	$('#calendar').fullCalendar('option', 'height', third);        
-        $('#map').height((third*2)-10);
+      	$('#calendar').fullCalendar('option', 'height', third);
+        $('leaflet').height((third*2)-10);
       }
 
       $(window).resize(function() {
 		  setHeightOfDivs();
 		});
 
-	   $(document).ready(function() {
+	  /* $(document).ready(function() {
 
-	   		// Calendar	   		
+	   		// Calendar
 		    $('#calendar').fullCalendar({
 		    	// Monday as the first day
 		    	firstDay: 1,
@@ -119,9 +127,9 @@
 			    events: function(start, end, timezone, callback) {
 			        $.ajax({
 			            url: 'http://json2jsonp.com/?url=http://www.stadt-koeln.de/externe-dienste/open-data/events-od.php',
-			            dataType: 'jsonp',			           
+			            dataType: 'jsonp',
 			            success: function(doc) {
-			                var events = [];			               
+			                var events = [];
 			                $(doc.items).each(function() {
 			                	if (moment(this.endedatum).isAfter(start)
 			                		&& moment(this.beginndatum).isBefore(end)){
@@ -135,14 +143,14 @@
 			            }
 			        });
 			    },
-			    eventClick: function(event, jsEvent, view) {			    	
-			    	markercluster.zoomToShowLayer(event.marker, function() {	
-			    		event.marker.bindPopup(event.marker.popUpString); 			       
+			    eventClick: function(event, jsEvent, view) {
+			    	markercluster.zoomToShowLayer(event.marker, function() {
+			    		event.marker.bindPopup(event.marker.popUpString);
 						event.marker.openPopup();
-				    });				    		    			    			        
+				    });
 			    }
-			});			
-              
+			});
+
             setHeightOfDivs();
 
 			// Map
@@ -161,14 +169,21 @@
               });
               map.addControl(zoomControl);
 
-              
-		});
+
+		});*/
 	   </script>
 	</head>
 	<body>
-	<div id='wrapper'>	
-		<div id='calendar'></div>
-		<div id='map'></div>
-	<div>		
+	<div id='wrapper' ng-controller="EventsController">
+		<div id='calendar' ui-calendar="{{uiConfig.calendar}}" ng-model="eventSources" third-of-height></div>
+		<leaflet two-thirds-of-height markers="jsonEvents" defaults="defaults" tiles="tiles" center="center"></leaflet>
+		<div id='favourites'>
+			 <ul>
+		        <li ng-repeat="event in myEvents">
+		          <span>{{event.title}}</span>
+		        </li>
+      		</ul>
+		</div>
+	<div>
 	</body>
 </html>
